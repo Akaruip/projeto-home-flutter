@@ -47,6 +47,21 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<Null> _refresh() async {
+    await Future.delayed(Duration(seconds: 1));
+    setState(() {
+      _toDoList.sort((a, b) {
+        if (a["ok"] && !b["ok"])
+          return 1;
+        else if (!a["ok"] && b["ok"])
+          return -1;
+        else
+          return 0;
+      });
+    });
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,12 +79,13 @@ class _MyAppState extends State<MyApp> {
               children: <Widget>[
                 Expanded(
                     child: TextField(
-                      controller: _toDoController,
-                      decoration: InputDecoration(
-                        labelText: "Nova Lista",
-                        labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                      ),
-                    )),
+                  controller: _toDoController,
+                  decoration: InputDecoration(
+                    labelText: "Nova Lista",
+                    labelStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
+                )),
                 ElevatedButton(
                     onPressed: _addToDo,
                     style: ElevatedButton.styleFrom(primary: Colors.green),
@@ -78,21 +94,20 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           Expanded(
+              child: RefreshIndicator(
             child: ListView.builder(
               padding: EdgeInsets.only(top: 10.0),
               itemCount: _toDoList.length,
               itemBuilder: buildItem,
             ),
-          )
+            onRefresh: _refresh,
+          ))
         ]));
   }
 
   Widget buildItem(context, index) {
     return Dismissible(
-      key: Key(DateTime
-          .now()
-          .millisecondsSinceEpoch
-          .toString()),
+      key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
       direction: DismissDirection.startToEnd,
       background: Container(
           color: Colors.red,
@@ -133,6 +148,7 @@ class _MyAppState extends State<MyApp> {
             ),
             duration: Duration(seconds: 4),
           );
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(snack);
         });
       },
